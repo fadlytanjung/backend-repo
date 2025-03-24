@@ -20,3 +20,8 @@ export const fetchAllUserData = async (): Promise<User[]> => {
 
   return users;
 };
+
+export const fetchIdbyEmail = async (email: string) => {
+	const userDoc = await db.collection('USERS').where('email', '==', email).get();
+  return userDoc;
+};

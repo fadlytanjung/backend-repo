@@ -3,6 +3,7 @@ import {
   updateUserData,
   fetchUserData,
   fetchAllUserData,
+  fetchIdbyEmail,
 } from "@repository/userCollection";
 import type { User } from "@entities/user";
 import { ApiError } from "@entities/apiError";
@@ -47,5 +48,23 @@ export const fetchAllUserHandler = async (req: Request, res: Response) => {
     else res.status(404).json({ message: "User not found" });
   } catch (error) {
     res.status(500).json({ message: "Error fetching user", error });
+  }
+};
+
+export const fetchIdbyEmailHandler = async (
+  req: Request,
+  res: Response,
+  next: NextFunction
+) => {
+  try {
+    const { email } = req.params;
+    const userDoc = await fetchIdbyEmail(email);
+    if (userDoc.empty) {
+      throw new ApiError("User not found", 404);
+    }
+    const userId = userDoc.docs[0].id;
+    res.status(200).send({ id: userId });
+  } catch (error) {
+    next(error);
   }
 };
