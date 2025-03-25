@@ -30,7 +30,7 @@ export const updateUserHandler = async (
 };
 
 export const fetchUserHandler = async (req: Request, res: Response) => {
-  const id = (req as any).id;
+  const { id } = req.params;
   try {
     const user = await fetchUserData(id);
     if (user) res.status(200).json(user);
@@ -41,11 +41,32 @@ export const fetchUserHandler = async (req: Request, res: Response) => {
 };
 
 export const fetchAllUserHandler = async (req: Request, res: Response) => {
-  const id = (req as any).id;
+  const page = parseInt(req.query.page as string) || 1;
+  const pageSize = parseInt(req.query.page_size as string) || 10;
+  const q = (req.query.q as string)?.toLowerCase() || "";
+
   try {
-    const user = await fetchAllUserData();
-    if (user) res.status(200).json(user);
-    else res.status(404).json({ message: "User not found" });
+    const users = await fetchAllUserData();
+
+    const filtered = users.filter(user =>
+      user.name?.toLowerCase().includes(q) ||
+      user.email?.toLowerCase().includes(q)
+    );
+
+    const total = filtered.length;
+    const start = (page - 1) * pageSize;
+    const end = start + pageSize;
+    const paginated = filtered.slice(start, end);
+
+    res.status(200).json({
+      data: paginated,
+      meta: {
+        total,
+        count: paginated.length,
+        page,
+        page_size: pageSize
+      }
+    });
   } catch (error) {
     res.status(500).json({ message: "Error fetching user", error });
   }
